@@ -125,7 +125,7 @@
           return c;
         }
         else {
-          throw "please add connect callback using onConnect";
+          throw "Please add connect callback using onConnect";
         }
       };
 

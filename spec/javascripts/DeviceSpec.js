@@ -98,41 +98,40 @@ describe("Device", function() {
       });
     };
 
-    describe("'ready'", function(){
-      shouldTriggerCallbacks("onReady","ready");
+    describe("'ready'",      function(){ shouldTriggerCallbacks("onReady","ready");           });
+    describe("'offline'",    function(){ shouldTriggerCallbacks("onOffline","offline");       });
+    describe("'incoming'",   function(){ shouldTriggerCallbacks("onIncoming","incoming");     });
+    describe("'cancel'",     function(){ shouldTriggerCallbacks("onCancel","cancel");         });
+    describe("'connect'",    function(){ shouldTriggerCallbacks("onConnect","connect");       });
+    describe("'disconnect'", function(){ shouldTriggerCallbacks("onDisconnect","disconnect"); });
+    describe("'presence'",   function(){ shouldTriggerCallbacks("onPresence","presence");     });
+    describe("'error'",      function(){ shouldTriggerCallbacks("onError","error");           });
+
+  });
+
+  describe("property", function(){
+
+    describe("#status", function(){
+      it("should link to Twilio.Device.status", function(){
+        expect(subject.status).toBe(Twilio.Device.status);
+      });
     });
 
-    describe("'offline'", function(){
-      shouldTriggerCallbacks("onOffline","offline");
-    });
-
-    describe("'incoming'", function(){
-      shouldTriggerCallbacks("onIncoming","incoming");
-    });
-
-    describe("'cancel'", function(){
-      shouldTriggerCallbacks("onCancel","cancel");
-    });
-
-    describe("'connect'", function(){
-      shouldTriggerCallbacks("onConnect","connect");
-    });
-
-    describe("'disconnect'", function(){
-      shouldTriggerCallbacks("onDisconnect","disconnect");
-    });
-
-    describe("'presence'", function(){
-      shouldTriggerCallbacks("onPresence","presence");
-    });
-
-    describe("'error'", function(){
-      shouldTriggerCallbacks("onError","error");
+    describe("#sounds", function(){
+      it("should link to Twilio.Device.sounds", function(){
+        expect(subject.sounds).toBe(Twilio.Device.sounds);
+      });
     });
 
   });
 
   describe("instance method", function(){
+
+    var shouldReturnCallbackListInstance = function(name){
+      return it("should return a Callback instance", function(){
+        expect(subject[name]).toBeAnInstanceOf(com.jivatechnology.CallbackList);
+      });
+    };
 
     beforeEach(function(){
       buildSubject();
@@ -153,12 +152,6 @@ describe("Device", function() {
         expect(passed_params).toEqual({options: true});
       });
     });
-
-    var shouldReturnCallbackListInstance = function(name){
-      return it("should return a Callback instance", function(){
-        expect(subject[name]).toBeAnInstanceOf(com.jivatechnology.CallbackList);
-      });
-    };
 
     describe("#showFlashSettings", function(){
 
@@ -256,15 +249,38 @@ describe("Device", function() {
 
     });
 
+    describe("#connect", function(){
+      it("should pass params to Twilio.Device.connect", function(){
+        var params = {};
+        var passed;
+
+        Twilio.Device.connect = function(p){ passed = p; };
+
+        subject.connect(params);
+
+        expect(passed).toBe(params);
+      });
+
+      it("should not allow a function to be passed to Twilio.Device.connect", function(){
+        expect( function(){ subject.connect(function(){}); } ).toThrow("Please add connect callback using onConnect");
+      });
+    });
+
+    describe("#disconnectAll", function(){
+      it("should link to Twilio.Device.disconnectAll", function(){
+        expect(subject.disconnectAll).toBe(Twilio.Device.disconnectAll);
+      });
+    });
+
     // Callbacks
-    describe("#onReady",      function(){ shouldReturnCallbackListInstance("onReady"); });
-    describe("#onOffline",    function(){ shouldReturnCallbackListInstance("onOffline"); });
-    describe("#onIncoming",   function(){ shouldReturnCallbackListInstance("onIncoming"); });
-    describe("#onCancel",     function(){ shouldReturnCallbackListInstance("onCancel"); });
-    describe("#onConnect",    function(){ shouldReturnCallbackListInstance("onConnect"); });
+    describe("#onReady",      function(){ shouldReturnCallbackListInstance("onReady");      });
+    describe("#onOffline",    function(){ shouldReturnCallbackListInstance("onOffline");    });
+    describe("#onIncoming",   function(){ shouldReturnCallbackListInstance("onIncoming");   });
+    describe("#onCancel",     function(){ shouldReturnCallbackListInstance("onCancel");     });
+    describe("#onConnect",    function(){ shouldReturnCallbackListInstance("onConnect");    });
     describe("#onDisconnect", function(){ shouldReturnCallbackListInstance("onDisconnect"); });
-    describe("#onPresence",   function(){ shouldReturnCallbackListInstance("onPresence"); });
-    describe("#onError",      function(){ shouldReturnCallbackListInstance("onError"); });
+    describe("#onPresence",   function(){ shouldReturnCallbackListInstance("onPresence");   });
+    describe("#onError",      function(){ shouldReturnCallbackListInstance("onError");      });
 
     describe("#onShowFlashSettings", function(){ shouldReturnCallbackListInstance("onShowFlashSettings"); });
     describe("#onHideFlashSettings", function(){ shouldReturnCallbackListInstance("onHideFlashSettings"); });
