@@ -1,0 +1,15 @@
+TwitTwilio - _Teerrwwiitt Teerriillio_
+======================================
+
+A wrapper for the Twilio Client to enhance the API. This allows offers some
+extra features:
+
+ - More flexible callbacks for existing functionality
+ - Callbacks for Flash security settings being shown or hidden
+ - Automatic retry for dropped connections
+
+TODO
+====
+
+ - Fine control of which Flash settings pane is shown
+ - Control of Flash Microphone volumes
