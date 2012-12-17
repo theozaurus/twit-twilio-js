@@ -38,7 +38,17 @@
         twilio_device.presence( function(pres){ that.onPresence.handle(pres); });
 
         // Error
-        twilio_device.error( function(err){ that.onError.handle(err); });
+        twilio_device.error( function(err){
+          err = err || {};
+          if(err.message == "Access to microphone has been denied"){
+            // Connection just created is junk - cancel it
+            var connections = that.connections();
+            var last_connection = connections[connections.length - 1];
+            if(last_connection){ last_connection.cancel(); }
+          }
+
+          that.onError.handle(err);
+        });
       })();
 
       // Monitor flash settings
@@ -117,17 +127,22 @@
       this.onHideFlashSettings = new CallbackList({must_keep: true});
 
       // Access to Twilio Device functions
+      var connections = [];
+
       this.connect = function(opts){
         if(!(opts instanceof Function)){
           var c = twilio_device.connect(opts);
           chanceFlashSettingsShown = true;
           monitorFlashSettings();
+          connections.push(c);
           return c;
         }
         else {
           throw "Please add connect callback using onConnect";
         }
       };
+
+      this.connections = function(){ return connections; };
 
       this.status        = twilio_device.status;
       this.sounds        = twilio_device.sounds;

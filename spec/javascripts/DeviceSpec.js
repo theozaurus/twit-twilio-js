@@ -12,7 +12,7 @@ describe("Device", function() {
       offline:    function(fun){ Twilio.DeviceCallbacks.offline           = fun; },
       incoming:   function(fun){ Twilio.DeviceCallbacks.incoming          = fun; },
       cancel:     function(fun){ Twilio.DeviceCallbacks.cancel            = fun; },
-      connect:    function(fun_or_params){ Twilio.DeviceCallbacks.connect = fun_or_params; },
+      connect:    function(fun_or_params){ Twilio.DeviceCallbacks.connect = fun_or_params; return {}; },
       disconnect: function(fun){ Twilio.DeviceCallbacks.disconnect        = fun; },
       presence:   function(fun){ Twilio.DeviceCallbacks.presence          = fun; },
       error:      function(fun){ Twilio.DeviceCallbacks.error             = fun; },
@@ -105,7 +105,23 @@ describe("Device", function() {
     describe("'connect'",    function(){ shouldTriggerCallbacks("onConnect","connect");       });
     describe("'disconnect'", function(){ shouldTriggerCallbacks("onDisconnect","disconnect"); });
     describe("'presence'",   function(){ shouldTriggerCallbacks("onPresence","presence");     });
-    describe("'error'",      function(){ shouldTriggerCallbacks("onError","error");           });
+
+    describe("'error'", function(){
+
+      it("if 'Access to microphone has been denied' is raised the last connection should be cancelled", function(){
+        // This is because no further connections can be made until this one has been cancelled. Nothing can be
+        // done with this existing connection so we must cancel it
+        var called        = false;
+        var connection    = subject.connect();
+        connection.cancel = function(){ called = true; };
+
+        Twilio.DeviceCallbacks.error({message: "Access to microphone has been denied"});
+
+        expect(called).toBeTruthy();
+      });
+
+      shouldTriggerCallbacks("onError","error");
+    });
 
   });
 
@@ -263,6 +279,19 @@ describe("Device", function() {
 
       it("should not allow a function to be passed to Twilio.Device.connect", function(){
         expect( function(){ subject.connect(function(){}); } ).toThrow("Please add connect callback using onConnect");
+      });
+
+    });
+
+    describe("#connections", function(){
+      it("should return an array of the connections attempted", function(){
+        expect(subject.connections()).toEqual([]);
+
+        var c1 = subject.connect();
+        expect(subject.connections()).toEqual([c1]);
+
+        var c2 = subject.connect();
+        expect(subject.connections()).toEqual([c1,c2]);
       });
     });
 
