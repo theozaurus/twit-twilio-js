@@ -3,22 +3,6 @@ describe("Connection", function() {
   var klass = com.jivatechnology.TwitTwilio.Connection;
   var subject;
 
-  var buildTwilioConnection = function(){
-    Twilio = {};
-    Twilio.ConnectionCallbacks = {};
-    Twilio.Connection = function(){};
-    Twilio.Connection.prototype = {
-      accept:     function(fun){ Twilio.ConnectionCallbacks.accept     = fun; },
-      disconnect: function(fun){ Twilio.ConnectionCallbacks.disconnect = fun; },
-      error:      function(fun){ Twilio.ConnectionCallbacks.error      = fun; },
-      mute:       function(){},
-      unmute:     function(){},
-      sendDigits: function(){},
-      status:     function(){return "pending";},
-      properties: {received: "params"}
-    };
-  };
-
   var buildSubject = function(){
     subject = new klass(new Twilio.Connection());
     return subject;
@@ -26,7 +10,39 @@ describe("Connection", function() {
 
   beforeEach(function(){
     buildTwilioConnection();
+    resetClasses();
     buildSubject();
+  });
+
+  describe("class method", function(){
+    describe("'build'", function(){
+
+      it("should return an instance of TwitTwilio.Connection", function(){
+        var conn = new Twilio.Connection();
+        var result = klass.build(conn);
+
+        expect(result).toBeAnInstanceOf(klass);
+      });
+
+      it("should return the same instance of TwitTwilio.Connection when passed the same Twilio.Connection", function(){
+        var conn1 = new Twilio.Connection();
+        var result1 = klass.build(conn1);
+        var result2 = klass.build(conn1);
+
+        expect(result1).toBe(result2);
+      });
+
+      it("should return the different instance of TwitTwilio.Connection when passed different Twilio.Connection", function(){
+        var conn1 = new Twilio.Connection();
+        var conn2 = new Twilio.Connection();
+
+        var result1 = klass.build(conn1);
+        var result2 = klass.build(conn2);
+
+        expect(result1).not.toBe(result2);
+      });
+
+    });
   });
 
   describe("instantiation" , function(){
@@ -161,6 +177,19 @@ describe("Connection", function() {
         Twilio.Connection.prototype.properties = {custom: "PROPERTIES"};
 
         expect( subject.properties() ).toEqual({custom: "PROPERTIES"});
+      });
+    });
+
+    describe("#isFor", function(){
+      it("should compare the Twilio.Connection that the connection was instantiated with to the one passed in", function(){
+        var conn1 = new Twilio.Connection();
+        var conn2 = new Twilio.Connection();
+
+        var subject1 = new klass(conn1);
+        var subject2 = new klass(conn2);
+
+        expect(subject1.isFor(conn1)).toBeTruthy();
+        expect(subject2.isFor(conn1)).toBeFalsy();
       });
     });
 

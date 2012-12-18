@@ -2,10 +2,24 @@
 
 (function(){
 
+  var scope = this;
+
+  var connections = [];
+  var connectionFor = function(twilio_connection){
+    var l = connections.length;
+    for(var i = 0; i < l; i++){
+      var conn = connections[i];
+      if( conn.isFor(twilio_connection) ){ return conn; }
+    }
+  };
+
   var CallbackList = com.jivatechnology.CallbackList;
   this.Connection = (function(){
 
     return function(twilio_connection){
+      // Track instantiation of object
+      connections.push(this);
+
       var that = this;
 
       // Setup Twilio Connection Callbacks
@@ -82,8 +96,27 @@
         return twilio_connection.properties;
       };
 
+      //// Check this is a connection for a certain twilio connection
+      this.isFor = function(expected_twilio_connection){
+        return expected_twilio_connection === twilio_connection;
+      };
+
     };
 
   })();
+
+  this.Connection.build = function(twilio_connection){
+    var c = connectionFor(twilio_connection);
+    if(!c){ c = new scope.Connection(twilio_connection); }
+    return c;
+  };
+
+  this.Connection.reset = function(s){
+    if(s == "TESTING"){
+      connections = [];
+    } else {
+      throw "This is for testing only";
+    }
+  };
 
 }).call(com.jivatechnology.TwitTwilio);

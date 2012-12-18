@@ -3,31 +3,6 @@ describe("Device", function() {
   var klass = com.jivatechnology.TwitTwilio.Device;
   var subject;
 
-  var buildTwilioDevice = function(){
-    Twilio = {};
-    Twilio.DeviceCallbacks = {};
-    Twilio.Device = {
-      setup:      function(token,params){ return Twilio.Device; },
-      ready:      function(fun){ Twilio.DeviceCallbacks.ready             = fun; },
-      offline:    function(fun){ Twilio.DeviceCallbacks.offline           = fun; },
-      incoming:   function(fun){ Twilio.DeviceCallbacks.incoming          = fun; },
-      cancel:     function(fun){ Twilio.DeviceCallbacks.cancel            = fun; },
-      connect:    function(fun_or_params){ Twilio.DeviceCallbacks.connect = fun_or_params; return {}; },
-      disconnect: function(fun){ Twilio.DeviceCallbacks.disconnect        = fun; },
-      presence:   function(fun){ Twilio.DeviceCallbacks.presence          = fun; },
-      error:      function(fun){ Twilio.DeviceCallbacks.error             = fun; },
-
-      showPermissionsDialog: function(){
-        var e = document.createElement("div");
-        var attr = document.createAttribute("style");
-        attr.value = "position: fixed; z-index: 99999; top: 0px; left: 0px; width: 100%; height: auto; overflow: hidden; visibility: visible;";
-        e.setAttributeNode(attr);
-        e.innerHTML = '<div><object type="application/x-shockwave-flash" id="__connectionFlash__" style="visibility: visible;"></object><button>Close</button></div>';
-        fixtureBlock().appendChild(e);
-      }
-    };
-  };
-
   var buildSubject = function(){
     subject = new klass();
     return subject;
@@ -38,8 +13,8 @@ describe("Device", function() {
   };
 
   beforeEach(function(){
-    klass.resetInstance("TESTING");
-    buildTwilioDevice();
+    resetClasses();
+    resetMocks();
   });
 
   afterEach(function(){
@@ -87,12 +62,17 @@ describe("Device", function() {
       buildSubject();
     });
 
-    var shouldTriggerCallbacks = function(callbackName, callback){
+    var shouldTriggerCallbacks = function(callbackName, callback, opts){
       it("should trigger " + callbackName + " callbacks", function(){
         var called = false;
         subject[callbackName].add(function(){ called = true; });
 
-        Twilio.DeviceCallbacks[callback]();
+        opts = opts || {};
+        var passing;
+
+        if( opts.with_connection ){ passing = new Twilio.Connection(); }
+
+        Twilio.DeviceCallbacks[callback](passing);
 
         expect(called).toBeTruthy();
       });
@@ -100,10 +80,12 @@ describe("Device", function() {
 
     describe("'ready'",      function(){ shouldTriggerCallbacks("onReady","ready");           });
     describe("'offline'",    function(){ shouldTriggerCallbacks("onOffline","offline");       });
-    describe("'incoming'",   function(){ shouldTriggerCallbacks("onIncoming","incoming");     });
-    describe("'cancel'",     function(){ shouldTriggerCallbacks("onCancel","cancel");         });
-    describe("'connect'",    function(){ shouldTriggerCallbacks("onConnect","connect");       });
-    describe("'disconnect'", function(){ shouldTriggerCallbacks("onDisconnect","disconnect"); });
+
+    describe("'incoming'",   function(){ shouldTriggerCallbacks("onIncoming",   "incoming",   {with_connection: true} ); });
+    describe("'cancel'",     function(){ shouldTriggerCallbacks("onCancel",     "cancel",     {with_connection: true} ); });
+    describe("'connect'",    function(){ shouldTriggerCallbacks("onConnect",    "connect",    {with_connection: true} ); });
+    describe("'disconnect'", function(){ shouldTriggerCallbacks("onDisconnect", "disconnect", {with_connection: true} ); });
+
     describe("'presence'",   function(){ shouldTriggerCallbacks("onPresence","presence");     });
 
     describe("'error'", function(){
@@ -270,7 +252,8 @@ describe("Device", function() {
         var params = {};
         var passed;
 
-        Twilio.Device.connect = function(p){ passed = p; };
+        var orig = Twilio.Device.connect;
+        Twilio.Device.connect = function(p){ passed = p; return orig(p); };
 
         subject.connect(params);
 

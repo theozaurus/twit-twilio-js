@@ -3,7 +3,7 @@
 
 (function(){
 
-  var that = this;
+  var scope = this;
   var instance = null;
 
   var Connection   = this.Connection;
@@ -29,10 +29,10 @@
         twilio_device.offline( function(device){ that.onOffline.handle(that); });
 
         // Connection
-        twilio_device.incoming(   function(conn){ that.onIncoming.handle(conn);   });
-        twilio_device.cancel(     function(conn){ that.onCancel.handle(conn);     });
-        twilio_device.connect(    function(conn){ that.onConnect.handle(conn);    });
-        twilio_device.disconnect( function(conn){ that.onDisconnect.handle(conn); });
+        twilio_device.incoming(   function(conn){ var c = scope.Connection.build(conn); that.onIncoming.handle(c);   });
+        twilio_device.cancel(     function(conn){ var c = scope.Connection.build(conn); that.onCancel.handle(c);     });
+        twilio_device.connect(    function(conn){ var c = scope.Connection.build(conn); that.onConnect.handle(c);    });
+        twilio_device.disconnect( function(conn){ var c = scope.Connection.build(conn); that.onDisconnect.handle(c); });
 
         // Presence
         twilio_device.presence( function(pres){ that.onPresence.handle(pres); });
@@ -99,6 +99,20 @@
         }
       };
 
+      //// Connection handling
+      var connections = [];
+
+      ////// This will take a Twilio.Connection turn it into a TwitTwilio
+      ////// connection and add it to our connection list if missing
+      ////// then return the TwitTwilio.Connection
+      var addConnection = function(conn){
+        var c = new scope.Connection.build(conn);
+        if( connections.indexOf(c) < 0 ){
+          connections.push(c);
+        }
+        return c;
+      };
+
       // Privileged methods
 
       this.setup = function(token, params){
@@ -127,14 +141,12 @@
       this.onHideFlashSettings = new CallbackList({must_keep: true});
 
       // Access to Twilio Device functions
-      var connections = [];
-
       this.connect = function(opts){
         if(!(opts instanceof Function)){
           var c = twilio_device.connect(opts);
           chanceFlashSettingsShown = true;
           monitorFlashSettings();
-          connections.push(c);
+          c = addConnection(c);
           return c;
         }
         else {
