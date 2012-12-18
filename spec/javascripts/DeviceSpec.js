@@ -102,6 +102,33 @@ describe("Device", function() {
         expect(called).toBeTruthy();
       });
 
+      it("if 'Access to microphone has been denied' is raised then should generate new connection when flash settings are closed", function(){
+        // This is because no further connections can be made until this one has been cancelled. Nothing can be
+        // done with this existing connection so we must cancel it
+        var params      = {agent: "Bobo"};
+        var connection1 = subject.connect(params);
+
+        expect(subject.connections().length).toEqual(1);
+
+        Twilio.DeviceCallbacks.error({message: "Access to microphone has been denied"});
+
+        expect(subject.connections().length).toEqual(1);
+
+        // Simulate user opening Flash settings, clicking allow and closing
+        // Do this twice to make sure we don't generate more connections than we need
+        subject.showFlashSettings();
+        subject.hideFlashSettings();
+
+        subject.showFlashSettings();
+        subject.hideFlashSettings();
+
+        var connections = subject.connections();
+        var connection2 = connections[connections.length - 1];
+
+        expect(connections.length).toEqual(2);
+        expect(connection2.params()).toEqual(params);
+      });
+
       shouldTriggerCallbacks("onError","error");
     });
 

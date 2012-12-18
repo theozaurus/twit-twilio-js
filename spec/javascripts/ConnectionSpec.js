@@ -24,6 +24,14 @@ describe("Connection", function() {
         expect(result).toBeAnInstanceOf(klass);
       });
 
+      it("should allow custom params to be passed too", function(){
+        var conn = new Twilio.Connection();
+        var params = {more: "complicated"};
+        var result = klass.build(conn, params);
+
+        expect(result.params()).toBe(params);
+      });
+
       it("should return the same instance of TwitTwilio.Connection when passed the same Twilio.Connection", function(){
         var conn1 = new Twilio.Connection();
         var result1 = klass.build(conn1);
@@ -47,11 +55,13 @@ describe("Connection", function() {
 
   describe("instantiation" , function(){
 
-    it("should take a twilio connection", function(){
+    it("should take a twilio connection and params", function(){
+      var params = {agent: "Bob"};
       var twilio_connection = new Twilio.Connection();
-      subject = new klass(twilio_connection);
+      subject = new klass(twilio_connection, params);
 
       expect(subject).toBeAnInstanceOf(klass);
+      expect(subject.params()).toBe(params);
     });
 
   });
@@ -190,10 +200,20 @@ describe("Connection", function() {
     });
 
     describe("#properties", function(){
-      it("should return the parameters property from the Twilio.Connection", function(){
+      it("should return the properties from the Twilio.Connection", function(){
         Twilio.Connection.prototype.properties = {custom: "PROPERTIES"};
 
         expect( subject.properties() ).toEqual({custom: "PROPERTIES"});
+      });
+    });
+
+    describe("#params", function(){
+      it("should return the params that where passed when created", function(){
+        var params = {custom: "PARAMS"};
+
+        subject = new klass(new Twilio.Connection(),params);
+
+        expect( subject.params() ).toBe(params);
       });
     });
 

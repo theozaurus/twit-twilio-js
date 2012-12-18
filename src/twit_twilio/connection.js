@@ -16,7 +16,7 @@
   var CallbackList = com.jivatechnology.CallbackList;
   this.Connection = (function(){
 
-    return function(twilio_connection){
+    return function(twilio_connection, params){
       // Track instantiation of object
       connections.push(this);
 
@@ -108,6 +108,10 @@
         return twilio_connection.properties;
       };
 
+      this.params = function(){
+        return params;
+      };
+
       //// Check this is a connection for a certain twilio connection
       this.isFor = function(expected_twilio_connection){
         return expected_twilio_connection === twilio_connection;
@@ -117,9 +121,9 @@
 
   })();
 
-  this.Connection.build = function(twilio_connection){
+  this.Connection.build = function(twilio_connection, params){
     var c = connectionFor(twilio_connection);
-    if(!c){ c = new scope.Connection(twilio_connection); }
+    if(!c){ c = new scope.Connection(twilio_connection, params); }
     return c;
   };
 

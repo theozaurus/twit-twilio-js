@@ -7,6 +7,7 @@
   var instance = null;
 
   var Connection   = this.Connection;
+  var Callback     = com.jivatechnology.Callback;
   var CallbackList = com.jivatechnology.CallbackList;
 
   this.Device = (function(){
@@ -44,7 +45,13 @@
             // Connection just created is junk - cancel it
             var connections = that.connections();
             var last_connection = connections[connections.length - 1];
-            if(last_connection){ last_connection.cancel(); }
+            if(last_connection){
+              last_connection.cancel();
+              var params = last_connection.params();
+
+              var retry = new Callback({func: function(){ that.connect(params); }, must_keep: false });
+              internalOnHideFlashSettings.add(retry);
+            }
           }
 
           that.onError.handle(err);
@@ -62,7 +69,9 @@
       var flashSettingsHide = function(){
         flashSettingsShown       = false;
         chanceFlashSettingsShown = false;
-        that.onHideFlashSettings.handle(flashSettingsElement());
+        var element = flashSettingsElement();
+        internalOnHideFlashSettings.handle(element);
+        that.onHideFlashSettings.handle(element);
       };
 
       //// DOM Flash setting functions
@@ -105,13 +114,16 @@
       ////// This will take a Twilio.Connection turn it into a TwitTwilio
       ////// connection and add it to our connection list if missing
       ////// then return the TwitTwilio.Connection
-      var addConnection = function(conn){
-        var c = new scope.Connection.build(conn);
+      var addConnection = function(conn, params){
+        var c = new scope.Connection.build(conn, params);
         if( connections.indexOf(c) < 0 ){
           connections.push(c);
         }
         return c;
       };
+
+      //// Callbacks used internally
+      var internalOnHideFlashSettings = new CallbackList({must_keep: false});
 
       // Privileged methods
 
@@ -141,12 +153,12 @@
       this.onHideFlashSettings = new CallbackList({must_keep: true});
 
       // Access to Twilio Device functions
-      this.connect = function(opts){
-        if(!(opts instanceof Function)){
-          var c = twilio_device.connect(opts);
+      this.connect = function(params){
+        if(!(params instanceof Function)){
+          var c = twilio_device.connect(params);
           chanceFlashSettingsShown = true;
           monitorFlashSettings();
-          c = addConnection(c);
+          c = addConnection(c,params);
           return c;
         }
         else {
