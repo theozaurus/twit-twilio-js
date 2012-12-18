@@ -99,6 +99,23 @@ describe("Connection", function() {
       });
     });
 
+    describe("#cancel", function(){
+      it("should call to Twilio.Connection#cancel", function(){
+        var called = false;
+        Twilio.Connection.prototype.cancel = function(){ called = true; };
+
+        subject.cancel();
+
+        expect(called).toBeTruthy();
+      });
+
+      it("should raise an error if anything is passed", function(){
+        var callback = function(){};
+
+        expect(function(){ subject.cancel(callback); }).toThrow("Please add cancel callback using onCancel");
+      });
+    });
+
     describe("#disconnect", function(){
       it("should call to Twilio.Connection#disconnect", function(){
         var called = false;
@@ -195,6 +212,7 @@ describe("Connection", function() {
 
     // Callbacks
     describe("#onAccept",     function(){ shouldReturnCallbackListInstance("onAccept");     });
+    describe("#onCancel",     function(){ shouldReturnCallbackListInstance("onCancel");     });
     describe("#onDisconnect", function(){ shouldReturnCallbackListInstance("onDisconnect"); });
     describe("#onError",      function(){ shouldReturnCallbackListInstance("onError");      });
 

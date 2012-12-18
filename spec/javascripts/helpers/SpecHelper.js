@@ -28,6 +28,7 @@ var buildTwilioConnection = function(){
   Twilio.Connection = function(){};
   Twilio.Connection.prototype = {
     accept:     function(fun){ Twilio.ConnectionCallbacks.accept     = fun; },
+    cancel:     function(fun){ Twilio.ConnectionCallbacks.cancel     = fun; },
     disconnect: function(fun){ Twilio.ConnectionCallbacks.disconnect = fun; },
     error:      function(fun){ Twilio.ConnectionCallbacks.error      = fun; },
     mute:       function(){},

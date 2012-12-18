@@ -25,6 +25,7 @@
       // Setup Twilio Connection Callbacks
       (function(){
         twilio_connection.accept(     function(conn){ that.onAccept.handle(that);     });
+        twilio_connection.cancel(     function(conn){ that.onCancel.handle(that);     });
         twilio_connection.disconnect( function(conn){ that.onDisconnect.handle(that); });
         twilio_connection.error(      function(conn){ that.onError.handle(that);      });
       })();
@@ -33,6 +34,7 @@
 
       //// Callbacks
       this.onAccept     = new CallbackList({must_keep: true});
+      this.onCancel     = new CallbackList({must_keep: true});
       this.onDisconnect = new CallbackList({must_keep: true});
       this.onError      = new CallbackList({must_keep: true});
 
@@ -45,6 +47,16 @@
         }
         else {
           throw "Please add accept callback using onAccept";
+        }
+      };
+
+      this.cancel = function(){
+        if(arguments.length === 0){
+          twilio_connection.cancel();
+          return self;
+        }
+        else {
+          throw "Please add cancel callback using onCancel";
         }
       };
 
