@@ -41,22 +41,29 @@
         // Error
         twilio_device.error( function(err){
           err = err || {};
-          if(err.message == "Access to microphone has been denied"){
-            // Connection just created is junk - cancel it
-            var connections = that.connections();
-            var last_connection = connections[connections.length - 1];
-            if(last_connection){
-              last_connection.cancel();
-              var params = last_connection.params();
 
-              var retry = new Callback({func: function(){ that.connect(params); }, must_keep: false });
-              internalOnHideFlashSettings.add(retry);
-            }
-          }
+          if(err.message == "Access to microphone has been denied"){ errorMicrophoneDenied(); }
+          if(err.code    == "NetConnection.Connect.Failed"){ errorNoNetwork(); }
 
           that.onError.handle(err);
         });
       })();
+
+      // Error handling
+      var errorMicrophoneDenied = function(){
+        var last_connection = lastConnection();
+        if(last_connection){
+          var retry = new Callback({func: function(){ retryConnection(last_connection); }, must_keep: false });
+          internalOnHideFlashSettings.add(retry);
+        }
+      };
+
+      var errorNoNetwork = function(){
+        var last_connection = lastConnection();
+        if(last_connection){
+          setTimeout( function(){ retryConnection(last_connection); }, 5000 );
+        }
+      };
 
       // Monitor flash settings
       var flashSettingsShown       = false;
@@ -92,6 +99,21 @@
         e.style.width      = "1px";
       };
 
+      var disableFlashSettings = function(){
+        // We add a 'show' function so that the prototype method is not called
+        // One of the parameters is the close_callback (used by Twilio).
+        // We add this callback into our own callback system that runs when
+        // the flash settings are hidden
+        twilio_device.dialog.show = function(close_callback){
+          var callback = new Callback({func: close_callback, must_keep: false });
+          internalOnHideFlashSettings.add(callback);
+        };
+      };
+
+      var enableFlashSettings = function(){
+        delete twilio_device.dialog.show;
+      };
+
       //// Timed check
       var monitorFlashSettings = function(){
         var elementShown = isFlashSettingsElementShown();
@@ -111,6 +133,11 @@
       //// Connection handling
       var connections = [];
 
+      var lastConnection = function(){
+        var connections = that.connections();
+        return connections[connections.length - 1];
+      };
+
       ////// This will take a Twilio.Connection turn it into a TwitTwilio
       ////// connection and add it to our connection list if missing
       ////// then return the TwitTwilio.Connection
@@ -120,6 +147,16 @@
           connections.push(c);
         }
         return c;
+      };
+
+      var retryConnection = function(old_connection){
+        // To retry a connection we first have the params it was created with
+        var params = old_connection.params();
+        var new_connection = that.connect(params);
+        // Make sure it starts in the same state of mute
+        if(old_connection.isMuted()){ new_connection.mute(); }
+        // Resetup the old callbacks on the connection
+        new_connection.callbacksFrom(old_connection);
       };
 
       //// Callbacks used internally
@@ -155,11 +192,22 @@
       // Access to Twilio Device functions
       this.connect = function(params){
         if(!(params instanceof Function)){
-          var c = twilio_device.connect(params);
-          chanceFlashSettingsShown = true;
-          monitorFlashSettings();
-          c = addConnection(c,params);
-          return c;
+          var c;
+          var last_connection = lastConnection();
+          if(last_connection){ last_connection.cancel(); }
+          if(autoFlashSettings){
+            c = twilio_device.connect(params);
+
+            chanceFlashSettingsShown = true;
+            monitorFlashSettings();
+          } else {
+            disableFlashSettings();
+
+            c = twilio_device.connect(params);
+
+            enableFlashSettings();
+          }
+          return addConnection(c,params);
         }
         else {
           throw "Please add connect callback using onConnect";
@@ -191,6 +239,17 @@
       this.isFlashSettingsShown = function(){
         return flashSettingsShown;
       };
+
+      var autoFlashSettings = true;
+      this.disableAutoFlashSettings = function(){
+        autoFlashSettings = false;
+      };
+
+      this.enableAutoFlashSettings = function(){
+        autoFlashSettings = true;
+      };
+
+      this.isAutoFlashSettings = function(){ return autoFlashSettings; };
 
     };
 

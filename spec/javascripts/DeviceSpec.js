@@ -90,21 +90,7 @@ describe("Device", function() {
 
     describe("'error'", function(){
 
-      it("if 'Access to microphone has been denied' is raised the last connection should be cancelled", function(){
-        // This is because no further connections can be made until this one has been cancelled. Nothing can be
-        // done with this existing connection so we must cancel it
-        var called        = false;
-        var connection    = subject.connect();
-        connection.cancel = function(){ called = true; };
-
-        Twilio.DeviceCallbacks.error({message: "Access to microphone has been denied"});
-
-        expect(called).toBeTruthy();
-      });
-
       it("if 'Access to microphone has been denied' is raised then should generate new connection when flash settings are closed", function(){
-        // This is because no further connections can be made until this one has been cancelled. Nothing can be
-        // done with this existing connection so we must cancel it
         var params      = {agent: "Bobo"};
         var connection1 = subject.connect(params);
 
@@ -130,6 +116,37 @@ describe("Device", function() {
       });
 
       shouldTriggerCallbacks("onError","error");
+    });
+
+    it("if there is no connection to the network (NetConnection.Connect.Failed) then it should try and reconnect in 5 seconds", function(){
+      var params;
+      var connection1;
+      var startTime;
+
+      runs(function(){
+        params      = {agent: "Bobo"};
+        connection1 = subject.connect(params);
+
+        Twilio.DeviceCallbacks.error({code: "NetConnection.Connect.Failed"});
+
+        startTime = new Date();
+
+        expect(subject.connections().length).toEqual(1);
+      });
+
+      waitsFor(function(){
+        var now = new Date();
+        return (now - startTime) > 5100;
+      });
+
+      runs(function(){
+        var connections = subject.connections();
+        var connection2 = connections[connections.length - 1];
+
+        expect(connections.length).toEqual(2);
+        expect(connection2.params()).toEqual(params);
+      });
+
     });
 
   });

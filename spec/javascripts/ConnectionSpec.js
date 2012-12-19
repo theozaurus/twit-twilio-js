@@ -230,6 +230,24 @@ describe("Connection", function() {
       });
     });
 
+    describe("#callbacksFrom", function(){
+      it("should link the callbacks from a previous connection to this connection", function(){
+        var conn1 = new Twilio.Connection();
+        var conn2 = new Twilio.Connection();
+
+        var called;
+        var subject1 = new klass(conn1);
+        subject1.onAccept.add( function(sub){ called = sub; } );
+
+        var subject2 = new klass(conn2);
+        subject2.callbacksFrom(subject1);
+
+        Twilio.ConnectionCallbacks.accept();
+
+        expect(called).toBe(subject2);
+      });
+    });
+
     // Callbacks
     describe("#onAccept",     function(){ shouldReturnCallbackListInstance("onAccept");     });
     describe("#onCancel",     function(){ shouldReturnCallbackListInstance("onCancel");     });

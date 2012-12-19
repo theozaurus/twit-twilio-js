@@ -117,6 +117,15 @@
         return expected_twilio_connection === twilio_connection;
       };
 
+      // Will link the callbacks from another connection to this one
+      // useful for when a connection is retried
+      this.callbacksFrom = function(oldConnection){
+        that.onAccept     = oldConnection.onAccept;
+        that.onCancel     = oldConnection.onCancel;
+        that.onDisconnect = oldConnection.onDisconnect;
+        that.onError      = oldConnection.onError;
+      };
+
     };
 
   })();
