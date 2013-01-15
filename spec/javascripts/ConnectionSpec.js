@@ -138,22 +138,60 @@ describe("Connection", function() {
     });
 
     describe("#mute", function(){
-      it("should call to Twilio.Connection#mute", function(){
+      it("when connection is 'open' should call to Twilio.Connection#mute", function(){
+        var called = false;
+        Twilio.Connection.prototype.mute = function(){ called = true; };
+
+        subject.status = function(){ return "open"; };
+
+        subject.mute();
+
+        expect(called).toBeTruthy();
+      });
+
+      it("when connection is 'pending' then when it is accepted it should Twilio.Connection#mute", function(){
         var called = false;
         Twilio.Connection.prototype.mute = function(){ called = true; };
 
         subject.mute();
+
+        expect(subject.isMuted()).toBeTruthy();
+        expect(called).toBeFalsy();
+
+        // Simulate connection being accepted
+        Twilio.ConnectionCallbacks.accept();
 
         expect(called).toBeTruthy();
       });
     });
 
     describe("#unmute", function(){
-      it("should call to Twilio.Connection#unmute", function(){
+      beforeEach(function(){
+        subject.mute();
+      });
+
+      it("when connection is 'open' should call to Twilio.Connection#unmute", function(){
+        var called = false;
+        Twilio.Connection.prototype.unmute = function(){ called = true; };
+
+        subject.status = function(){ return "open"; };
+
+        subject.unmute();
+
+        expect(called).toBeTruthy();
+      });
+
+      it("when connection is 'pending' then when it is accepted it should Twilio.Connection#unmute", function(){
         var called = false;
         Twilio.Connection.prototype.unmute = function(){ called = true; };
 
         subject.unmute();
+
+        expect(subject.isMuted()).toBeFalsy();
+        expect(called).toBeFalsy();
+
+        // Simulate connection being accepted
+        Twilio.ConnectionCallbacks.accept();
 
         expect(called).toBeTruthy();
       });

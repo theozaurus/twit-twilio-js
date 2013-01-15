@@ -24,7 +24,7 @@
 
       // Setup Twilio Connection Callbacks
       (function(){
-        twilio_connection.accept(     function(conn){ that.onAccept.handle(that);     });
+        twilio_connection.accept(     function(conn){ internalOnAccept.handle(that); that.onAccept.handle(that); });
         twilio_connection.cancel(     function(conn){ that.onCancel.handle(that);     });
         twilio_connection.disconnect( function(conn){ that.onDisconnect.handle(that); });
         twilio_connection.error(      function(conn){ that.onError.handle(that);      });
@@ -33,6 +33,8 @@
       // Privileged methods
 
       //// Callbacks
+      var internalOnAccept = new CallbackList({must_keep: false});
+
       this.onAccept     = new CallbackList({must_keep: true});
       this.onCancel     = new CallbackList({must_keep: true});
       this.onDisconnect = new CallbackList({must_keep: true});
@@ -79,13 +81,23 @@
       var muted = false;
       this.mute = function(){
         muted = true;
-        twilio_connection.mute();
+        var command = function(){ twilio_connection.mute(); };
+        if(that.status() == "pending"){
+          internalOnAccept.add(command);
+        } else {
+          command();
+        }
         return that;
       };
 
       this.unmute = function(){
         muted = false;
-        twilio_connection.unmute();
+        var command = function(){ twilio_connection.unmute(); };
+        if(that.status() == "pending"){
+          internalOnAccept.add(command);
+        } else {
+          command();
+        }
         return that;
       };
 
