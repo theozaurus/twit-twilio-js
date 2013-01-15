@@ -195,6 +195,46 @@ describe("Device", function() {
       });
     });
 
+    describe("#reconnect", function(){
+      it("should take a TwitTwilio.Connection and create a new one", function(){
+        var oldConnection = subject.connect();
+
+        var newConnection = subject.reconnect(oldConnection);
+
+        expect(newConnection).not.toBe(oldConnection);
+        expect(newConnection).toBeAnInstanceOf(com.jivatechnology.TwitTwilio.Connection);
+      });
+
+      it("new connection should have same params as original connection", function(){
+        var params = {agent: "Smith", phone_number: "4158675309"};
+        var oldConnection = subject.connect(params);
+
+        var newConnection = subject.reconnect(oldConnection);
+
+        expect(newConnection.params()).toEqual(params);
+      });
+
+      it("new connection should have same mute state as original connection", function(){
+        var oldConnection = subject.connect();
+        oldConnection.mute();
+
+        var newConnection = subject.reconnect(oldConnection);
+
+        expect(newConnection.isMuted).toBeTruthy();
+      });
+
+      it("new connection should have the callbacks from the original connection", function(){
+        var oldConnection = subject.connect();
+
+        var newConnection = subject.reconnect(oldConnection);
+
+        expect( newConnection.onAccept     ).toEqual( oldConnection.onAccept     );
+        expect( newConnection.onCancel     ).toEqual( oldConnection.onCancel     );
+        expect( newConnection.onDisconnect ).toEqual( oldConnection.onDisconnect );
+        expect( newConnection.onError      ).toEqual( oldConnection.onError      );
+      });
+    });
+
     describe("#showFlashSettings", function(){
 
       it("should call #showPermissionsDialog on Twilio Device", function(){

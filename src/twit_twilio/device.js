@@ -157,6 +157,8 @@
         if(old_connection.isMuted()){ new_connection.mute(); }
         // Resetup the old callbacks on the connection
         new_connection.callbacksFrom(old_connection);
+
+        return new_connection;
       };
 
       //// Callbacks used internally
@@ -213,6 +215,8 @@
           throw "Please add connect callback using onConnect";
         }
       };
+
+      this.reconnect = retryConnection;
 
       this.connections = function(){ return connections; };
 
