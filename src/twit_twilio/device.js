@@ -255,6 +255,14 @@
 
       this.isAutoFlashSettings = function(){ return autoFlashSettings; };
 
+      this.isWebRTC = function(){
+        try {
+          rtc = Twilio.require('twilio/rtc');
+          return rtc.enabled();
+        } catch (e) {
+          return false;
+        }
+      };
     };
 
   })();

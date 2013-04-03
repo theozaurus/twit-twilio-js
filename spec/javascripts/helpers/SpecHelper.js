@@ -21,7 +21,12 @@ var fixtureClear = function(){
   }
 };
 
-var Twilio = {};
+var buildTwilio = function(){
+  Twilio = {
+    // Throws an error unless overridden
+    require: function(lib){ undefined.apply(); }
+  };
+};
 
 var buildTwilioConnection = function(){
   Twilio.ConnectionCallbacks = {};
@@ -64,6 +69,7 @@ var buildTwilioDevice = function(){
 };
 
 var resetMocks = function(){
+  buildTwilio();
   buildTwilioConnection();
   buildTwilioDevice();
 };

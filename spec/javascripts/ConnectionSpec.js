@@ -9,7 +9,7 @@ describe("Connection", function() {
   };
 
   beforeEach(function(){
-    buildTwilioConnection();
+    resetMocks();
     resetClasses();
     buildSubject();
   });

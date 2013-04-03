@@ -368,6 +368,41 @@ describe("Device", function() {
       });
     });
 
+    describe("#isWebRTC", function(){
+
+      it("should return false if Twilio cannot require RTC library", function(){
+        expect(subject.isWebRTC()).toBeFalsy();
+      });
+
+      it("should return true if Twilio can require RTC library, and it reports WebRTC support", function(){
+        orig = Twilio.Device.require;
+        Twilio.require = function(module){
+          if(module == 'twilio/rtc'){
+            return {enabled: function(){return true;} };
+          } else {
+            return orig(module);
+          }
+        };
+
+        expect(subject.isWebRTC()).toBeTruthy();
+      });
+
+      it("should return false if Twilio can require RTC library, and it reports no WebRTC support", function(){
+        orig = Twilio.Device.require;
+        Twilio.require = function(module){
+          if(module == 'twilio/rtc'){
+            return {enabled: function(){return false;} };
+          } else {
+            return orig(module);
+          }
+        };
+
+        expect(subject.isWebRTC()).toBeFalsy();
+      });
+
+
+    });
+
     // Callbacks
     describe("#onReady",      function(){ shouldReturnCallbackListInstance("onReady");      });
     describe("#onOffline",    function(){ shouldReturnCallbackListInstance("onOffline");    });
