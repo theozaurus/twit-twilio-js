@@ -149,6 +149,20 @@ describe("Device", function() {
 
     });
 
+    // We don't want error being raised using Twilio's code
+    it("should remove any other error handlers", function(){
+      var defaultErrorHandler = Twilio.Device.instance.handlers["error"][0];
+      var ran = false;
+
+      Twilio.Device.instance.removeHandle = function(name,handle){
+        ran = name == 'error' && handle === defaultErrorHandler;
+      };
+
+      Twilio.DeviceCallbacks.error({code: "NetConnection.Connect.Failed"});
+
+      expect(ran);
+    });
+
   });
 
   describe("property", function(){

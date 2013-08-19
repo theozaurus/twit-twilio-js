@@ -57,6 +57,13 @@ var buildTwilioDevice = function(){
     presence:   function(fun){ Twilio.DeviceCallbacks.presence          = fun; },
     error:      function(fun){ Twilio.DeviceCallbacks.error             = fun; },
 
+    instance: {
+      handlers: {
+        "error": [function(){}]
+      },
+      removeListener: function(name,handler){}
+    },
+
     showPermissionsDialog: function(){
       var e = document.createElement("div");
       var attr = document.createAttribute("style");

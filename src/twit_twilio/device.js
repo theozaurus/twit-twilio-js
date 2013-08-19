@@ -39,14 +39,25 @@
         twilio_device.presence( function(pres){ that.onPresence.handle(pres); });
 
         // Error
-        twilio_device.error( function(err){
+        var errHandler = function(err){
           err = err || {};
+
+          // Remove error handlers that do not belong to TwitTwilio
+          var errorHandlers = twilio_device.instance.handlers["error"];
+          for(var i=0; i < errorHandlers.length; i++){
+            var handler = errorHandlers[i];
+            if(handler!=errHandler){
+              twilio_device.instance.removeListener("error",handler);
+            }
+          }
 
           if(err.message == "Access to microphone has been denied"){ errorMicrophoneDenied(); }
           if(err.code    == "NetConnection.Connect.Failed"){ errorNoNetwork(); }
 
           that.onError.handle(err);
-        });
+        };
+
+        twilio_device.error( errHandler );
       })();
 
       // Error handling
